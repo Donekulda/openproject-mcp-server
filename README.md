@@ -6,7 +6,8 @@ A Model Context Protocol (MCP) server that provides seamless integration with [O
 
 ## Features
 
-- 🔌 **Full OpenProject API v3 Integration**
+- 🔌 **Full OpenProject API v3 Integration** via FastMCP
+- 🛠️ **59+ MCP Tools**: Rich set of tools for projects, work packages, time entries, memberships, versions, news, and more
 - 📋 **Project Management**: List and filter projects
 - 📝 **Work Package Management**: Create, list, and filter work packages
 - 🏷️ **Type Management**: List available work package types
@@ -45,7 +46,7 @@ pip install uv
 
 ```bash
 git clone git@github.com:Donekulda/openproject-mcp-server.git
-cd openproject-mcp
+cd openproject-mcp-server
 ```
 
 ### 3. Create Virtual Environment and Install Dependencies
@@ -68,7 +69,7 @@ uv pip install -r requirements.txt
 
 ```bash
 # Copy the environment template
-cp env_example.txt .env
+cp .env.example .env
 ```
 
 Edit `.env` and add your OpenProject configuration:
@@ -83,11 +84,11 @@ OPENPROJECT_API_KEY=your-api-key-here
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
-| `OPENPROJECT_URL` | Yes | Your OpenProject instance URL | `https://mycompany.openproject.com` |
-| `OPENPROJECT_API_KEY` | Yes | API key from your OpenProject user profile | `8169846b42461e6e...` |
-| `OPENPROJECT_PROXY` | No | HTTP proxy URL if needed | `http://proxy.company.com:8080` |
-| `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARNING, ERROR) | `INFO` |
-| `TEST_CONNECTION_ON_STARTUP` | No | Test API connection when server starts | `true` |
+| `OPENPROJECT_URL` | Yes | Your OpenProject instance URL | `https://your-instance.openproject.com` |
+| `OPENPROJECT_API_KEY` | Yes | API key from your OpenProject user profile (see **Getting an API Key**) | `8169846b42461e6e...` |
+| `OPENPROJECT_PROXY` | No | HTTP proxy URL if needed (leave empty for direct connection) | `http://proxy.company.com:8080` |
+| `LOG_LEVEL` | No | Log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
+| `TEST_CONNECTION_ON_STARTUP` | No | Test API connection when server starts (`true`/`false`) | `true` |
 
 ### Getting an API Key
 
@@ -101,9 +102,17 @@ OPENPROJECT_API_KEY=your-api-key-here
 
 ### Running the Server
 
-**Using uv (recommended):**
+This project ships with three entry points:
+
+- `openproject-mcp-fastmcp.py` – stdio transport (local MCP clients like Cursor / Claude Desktop)
+- `openproject-mcp-http.py` – HTTP transport (long‑running HTTP server)
+- `openproject-mcp-sse.py` – SSE transport (FastMCP Cloud, configured via `.fastmcp.yaml`)
+
+For local development and editor integration, use the stdio entry point.
+
+**Using uv (recommended, stdio entry point):**
 ```bash
-uv run python openproject-mcp.py
+uv run python openproject-mcp-fastmcp.py
 ```
 
 **Alternative (manual activation):**
@@ -111,11 +120,49 @@ uv run python openproject-mcp.py
 # Activate virtual environment
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Run the server
-python openproject-mcp.py
+# Run the server (stdio transport)
+python openproject-mcp-fastmcp.py
 ```
 
-**Note:** If you renamed the file from `openproject_mcp_server.py`, update your configuration accordingly.
+To run the HTTP or SSE variants instead, replace the script name with `openproject-mcp-http.py` or `openproject-mcp-sse.py`.
+
+### Integration with Cursor
+
+You can add this server to Cursor as an MCP server using the stdio entry point `openproject-mcp-fastmcp.py`. See the Cursor MCP docs for background: [`https://cursor.com/docs/context/mcp`](https://cursor.com/docs/context/mcp).
+
+#### One‑click install link (example)
+
+This example deeplink installs a server named `openproject-mcp` that runs:
+
+```bash
+python openproject-mcp-fastmcp.py
+```
+
+Cursor install link (you can click or paste into your browser, then update the command/path in Cursor if needed):
+
+`cursor://anysphere.cursor-deeplink/mcp/install?name=openproject-mcp&config=eyJvcGVucHJvamVjdC1tY3AiOnsiY29tbWFuZCI6InB5dGhvbiIsImFyZ3MiOlsib3BlbnByb2plY3QtbWNwLWZhc3RtY3AucHkiXX19`
+
+If your `python` executable or project path differ, open Cursor’s MCP settings after installation and adjust the command/args to match your environment.
+
+#### Manual Cursor configuration
+
+Alternatively, configure the server manually in Cursor’s MCP settings using a JSON block like:
+
+```json
+{
+  "openproject-mcp": {
+    "command": "python",
+    "args": ["openproject-mcp-fastmcp.py"],
+    "cwd": "/absolute/path/to/openproject-mcp-server"
+  }
+}
+```
+
+Make sure:
+
+- `cwd` points to the repository root (where `.env` lives and `src/` is available).
+- Your `.env` file is configured as described in the **Configuration** section.
+- The `python` executable has all dependencies from `pyproject.toml` / `requirements.txt` installed.
 
 ### Integration with Claude Desktop
 
@@ -129,7 +176,7 @@ Add this configuration to your Claude Desktop config file:
   "mcpServers": {
     "openproject": {
       "command": "/path/to/your/project/.venv/bin/python",
-      "args": ["/path/to/your/project/openproject-mcp.py"]
+      "args": ["/path/to/your/project/openproject-mcp-fastmcp.py"]
     }
   }
 }
@@ -143,7 +190,7 @@ Add this configuration to your Claude Desktop config file:
   "mcpServers": {
     "openproject": {
       "command": "uv",
-      "args": ["run", "python", "/path/to/your/project/openproject-mcp.py"]
+      "args": ["run", "python", "/path/to/your/project/openproject-mcp-fastmcp.py"]
     }
   }
 }
@@ -521,10 +568,10 @@ uv run pytest tests/
 
 ```bash
 # Format code
-uv run black openproject-mcp.py
+uv run black openproject-mcp-fastmcp.py
 
 # Lint code
-uv run flake8 openproject-mcp.py
+uv run flake8 openproject-mcp-fastmcp.py
 ```
 
 ### Adding Dependencies
