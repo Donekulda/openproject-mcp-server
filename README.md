@@ -18,12 +18,35 @@ A Model Context Protocol (MCP) server that provides seamless integration with [O
 
 ## Prerequisites
 
-- Python 3.10 or higher
+- Python 3.13 or higher
 - [uv](https://docs.astral.sh/uv/) (fast Python package manager)
 - An OpenProject instance (cloud or self-hosted)
 - OpenProject API key (generated from your user profile)
 
-## Installation
+## Quick Start for Cursor (macOS/Linux)
+
+If you're using Cursor on macOS or Linux, the fastest way to get this OpenProject MCP server set up is to use the provided installation script.
+
+```bash
+# Create a folder for locally downloaded MCP servers (if it doesn't exist yet)
+mkdir -p mcps
+cd mcps
+
+# Clone this repository into the mcps folder
+git clone git@github.com:Donekulda/openproject-mcp-server.git
+cd openproject-mcp-server
+
+# Make the Cursor install script executable and run it
+chmod +x scripts/install_mcp_cursor.sh
+./scripts/install_mcp_cursor.sh
+```
+
+Then just **follow the script instructions** – it will:
+- Ensure a Python virtual environment is created with `uv sync`
+- Ask for your OpenProject URL and API key
+- Configure `~/.cursor/mcp.json` so Cursor can use this MCP server
+
+## Full Installation
 
 ### 1. Install uv (if not already installed)
 
@@ -126,81 +149,6 @@ python openproject-mcp-fastmcp.py
 
 To run the HTTP or SSE variants instead, replace the script name with `openproject-mcp-http.py` or `openproject-mcp-sse.py`.
 
-### Integration with Cursor
-
-You can add this server to Cursor as an MCP server using the stdio entry point `openproject-mcp-fastmcp.py`. See the Cursor MCP docs for background: [`https://cursor.com/docs/context/mcp`](https://cursor.com/docs/context/mcp).
-
-#### One‑click install link (example)
-
-This example deeplink installs a server named `openproject-mcp` that runs:
-
-```bash
-python openproject-mcp-fastmcp.py
-```
-
-Cursor install link (you can click or paste into your browser, then update the command/path in Cursor if needed):
-
-`cursor://anysphere.cursor-deeplink/mcp/install?name=openproject-mcp&config=eyJvcGVucHJvamVjdC1tY3AiOnsiY29tbWFuZCI6InB5dGhvbiIsImFyZ3MiOlsib3BlbnByb2plY3QtbWNwLWZhc3RtY3AucHkiXX19`
-
-If your `python` executable or project path differ, open Cursor’s MCP settings after installation and adjust the command/args to match your environment.
-
-#### Manual Cursor configuration
-
-Alternatively, configure the server manually in Cursor’s MCP settings using a JSON block like:
-
-```json
-{
-  "openproject-mcp": {
-    "command": "python",
-    "args": ["openproject-mcp-fastmcp.py"],
-    "cwd": "/absolute/path/to/openproject-mcp-server"
-  }
-}
-```
-
-Make sure:
-
-- `cwd` points to the repository root (where `.env` lives and `src/` is available).
-- Your `.env` file is configured as described in the **Configuration** section.
-- The `python` executable has all dependencies from `pyproject.toml` / `requirements.txt` installed.
-
-### Integration with Claude Desktop
-
-Add this configuration to your Claude Desktop config file:
-
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "openproject": {
-      "command": "/path/to/your/project/.venv/bin/python",
-      "args": ["/path/to/your/project/openproject-mcp-fastmcp.py"]
-    }
-  }
-}
-```
-
-**Note:** Replace `/path/to/your/project/` with the actual path to your project directory.
-
-**Alternative with uv (if uv is in your system PATH):**
-```json
-{
-  "mcpServers": {
-    "openproject": {
-      "command": "uv",
-      "args": ["run", "python", "/path/to/your/project/openproject-mcp-fastmcp.py"]
-    }
-  }
-}
-```
-
-**Why use the direct Python path?**
-The direct Python path approach is more reliable because:
-- It doesn't require `uv` to be in the system PATH
-- It avoids potential issues with `uv run` trying to install the project as a package
-- It's simpler and more straightforward for MCP server configurations
 
 ### Available Tools
 
