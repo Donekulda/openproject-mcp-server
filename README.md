@@ -44,7 +44,7 @@ pip install uv
 ### 2. Clone and Setup the Project
 
 ```bash
-git clone https://github.com/yourusername/openproject-mcp.git
+git clone git@github.com:Donekulda/openproject-mcp-server.git
 cd openproject-mcp
 ```
 
